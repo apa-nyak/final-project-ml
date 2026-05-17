@@ -248,7 +248,7 @@ for image_file in tqdm(image_files):
             (img_w * img_h)
         )
 
-        # Skip super tiny BBOX
+        # Gunakan Treshold untuk expand/skip bbox
         if bbox_area_ratio < 0.0005:
             skip_tiny += 1
             continue
