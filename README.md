@@ -1,7 +1,7 @@
 # Implementasi dan Analisis Komparatif MobileNetV3 dan MLP untuk Klasifikasi Penyakit Daun Padi 
 
 Anggota Tim
-Proyek ini dikerjakan oleh Kelompok Kelompok 8 sebagai pemenuhan Ujian Akhir Semester Pembelajaran Mesin:
+Proyek ini dikerjakan oleh Kelompok 8 sebagai pemenuhan Ujian Akhir Semester Pembelajaran Mesin:
 
 Maria Agatha Metri Tetrajati (24031554189)
 Tara Tabriza Rachman (24031554107)
