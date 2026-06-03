@@ -1,4 +1,4 @@
-# Implementasi dan Analisis Komparatif MobileNetV3 dan MLP untuk Klasifikasi Penyakit Daun Padi 
+# Implementasi dan Analisis Komparatif MobileNetV3 dan DenseNet121 untuk Klasifikasi Penyakit Daun Padi 
 
 Anggota Tim
 Proyek ini dikerjakan oleh Kelompok 8 sebagai pemenuhan Ujian Akhir Semester Pembelajaran Mesin:
