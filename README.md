@@ -8,9 +8,9 @@ Tara Tabriza Rachman (24031554107)
 Ahmad Dhani Alfawwas (24031554096)
 
 ## Deskripsi Proyek
-Proyek ini bertujuan untuk melakukan implementasi serta analisis komparatif beberapa arsitektur *deep learning*, yaitu **MobileNet (MobileNetV3)** dan kombinasi **CNN-MLP** dalam melakukan klasifikasi penyakit daun padi menggunakan citra digital.
+Proyek ini bertujuan untuk melakukan implementasi serta analisis komparatif beberapa arsitektur *deep learning*, yaitu **MobileNetV3** dan **DenseNet121** dalam melakukan klasifikasi penyakit daun padi menggunakan citra digital.
 
-Penelitian ini merupakan bentuk penerapan teknologi kecerdasan artifisial dalam mendukung transformasi digital sektor pangan, khususnya untuk meminimalisir risiko gagal panen melalui deteksi dini. Fokus utama penelitian adalah membandingkan performa model dari sisi akurasi, efisiensi komputasi, serta kemampuan generalisasi dalam mendeteksi berbagai jenis penyakit daun padi, guna menemukan arsitektur paling efisien yang berpotensi diadopsi pada perangkat dengan spesifikasi komputasi rendah (*low-resource devices*).
+Penelitian ini merupakan bentuk penerapan teknologi kecerdasan artifisial dalam mendukung transformasi digital sektor pangan, khususnya untuk meminimalisir risiko gagal panen melalui deteksi dini penyakit tanaman. Fokus utama penelitian adalah membandingkan performa model dari sisi akurasi, efisiensi komputasi, serta kemampuan generalisasi dalam mendeteksi berbagai jenis penyakit daun padi guna menemukan arsitektur paling efektif dan efisien untuk implementasi pada perangkat dengan sumber daya komputasi terbatas (*low-resource devices*).
 
 ## Dataset
 Dataset yang digunakan berasal dari repositori publik Kaggle:
@@ -29,23 +29,43 @@ Dataset ini terdiri dari citra daun padi (`.jpg`) dan file anotasi *bounding box
 8. `Rice__NarrowBrownLeafSpot`
 9. `Rice__NeckBlast`
 
+Namun, karena distribusi data yang sangat tidak seimbang, beberapa kelas minoritas kemudian digabungkan menjadi kategori OtherDisease untuk membantu stabilitas proses pelatihan model.
+
 ## Metodologi
-Proyek ini mengimplementasikan pendekatan **Transfer Learning** dan **Multi-Layer Perceptron (MLP)**:
-1. **Ekstraksi Fitur:** Menggunakan *base model* Convolutional Neural Network (**MobileNetV3**) untuk mengekstrak peta fitur (*feature maps*) spasial dari citra masukan.
-2. **Klasifikasi (CNN-MLP):** Mengganti *layer* klasifikasi bawaan model dengan arsitektur MLP (*Dense Layers*) kustom buatan sendiri untuk memetakan fitur yang diekstrak menjadi probabilitas 9 kelas penyakit.
-3. **Evaluasi:** Mengukur performa komparatif menggunakan metrik *Accuracy*, *Precision*, *Recall*, *F1-Score*, dan menganalisis *Confusion Matrix*.
+Penelitian ini mengimplementasikan pendekatan *Transfer Learning* menggunakan dua arsitektur CNN modern yaitu MobileNetV3 dan DenseNet121.
+1. **Adaptive Cropping berbasis YOLO**
+Melakukan ekstraksi area penyakit berdasarkan koordinat bounding box YOLO sehingga setiap citra hanya merepresentasikan satu jenis penyakit.
+2. **Image Enhancement**
+Menggunakan metode CLAHE (Contrast Limited Adaptive Histogram Equalization) dan sharpening untuk meningkatkan kualitas visual citra penyakit daun padi.
+3. **Data Augmentation dan Normalisasi**
+Menerapkan horizontal flip, random rotation, color jitter, serta normalisasi ImageNet untuk meningkatkan kemampuan generalisasi model.
+4. **Penanganan Imbalanced Dataset**
+Menggunakan class weights pada fungsi loss untuk membantu model mempelajari kelas minoritas secara lebih seimbang.
+5. **Pelatihan Model**
+Mengimplementasikan MobileNetV3 dan DenseNet121 berbasis pretrained ImageNet menggunakan optimizer Adam dan CrossEntropyLoss.
+6. **Evaluasi Model**
+Mengukur performa model menggunakan Accuracy, Precision, Recall, F1-Score, serta Confusion Matrix pada pengujian internal dan eksternal.
+
+## Hasil Penelitian
+Hasil evaluasi internal menunjukkan bahwa kedua model memperoleh performa yang sangat tinggi dengan akurasi mendekati 99%. Hal ini menunjukkan bahwa proses preprocessing dan rekayasa fitur yang diterapkan mampu membantu model mempelajari karakteristik visual penyakit daun padi dengan sangat baik.
+
+Namun, ketika dilakukan pengujian menggunakan dataset eksternal yang belum pernah digunakan sebelumnya, performa model mengalami penurunan yang cukup signifikan. Pada pengujian eksternal, MobileNetV3 memperoleh akurasi sekitar 31%, sedangkan DenseNet121 memperoleh akurasi sekitar 40%.
+
+Hasil tersebut menunjukkan adanya perbedaan distribusi data (domain shift) antara dataset pelatihan dan dataset eksternal, sehingga kemampuan generalisasi model masih perlu ditingkatkan lebih lanjut. Meskipun demikian, DenseNet121 menunjukkan performa klasifikasi yang lebih baik pada data eksternal, sedangkan MobileNetV3 tetap unggul dari sisi efisiensi komputasi dan kecepatan inferensi sehingga lebih cocok diterapkan pada perangkat dengan sumber daya terbatas.
+
+Penelitian ini juga menunjukkan bahwa akurasi tinggi pada validasi internal belum tentu mencerminkan performa yang sama pada data dunia nyata. Oleh karena itu, pengujian eksternal menjadi tahap penting dalam memastikan kemampuan generalisasi model deep learning.
 
 ## Kendala
 Dalam proses pra-pemrosesan data dan persiapan eksperimen awal, tim kami mengidentifikasi beberapa tantangan teknis utama beserta langkah mitigasi yang kami terapkan:
 
 ### 1. Inkompatibilitas Format Dataset (Object Detection ke Classification)
-* **Kendala:** Dataset *RICE Leaf Diseases* yang tersedia di repositori publik dirancang untuk tugas *Object Detection* dengan anotasi target berbentuk koordinat *bounding box* YOLO (`.txt`). Sementara itu, arsitektur CNN-MLP yang kami bangun membutuhkan format dataset *ImageFolder* murni untuk tugas klasifikasi (*Image Classification*). Jika gambar utuh langsung digunakan, model berisiko mengalami bias akibat noise latar belakang (seperti tanah, air, atau area daun sehat).
-* **Solusi:** Kami mengembangkan skrip Python kustom untuk melakukan ekstraksi. Skrip ini membaca berkas koordinat YOLO, mendenormalisasinya ke skala piksel asli, dan mengaplikasikan teknik **Adaptive Cropping** dengan perluasan bingkai (*expand ratio*) dinamis berdasarkan skala ukuran objek. Langkah ini berhasil mengisolasi titik-titik penyakit menjadi citra klasifikasi tunggal yang fokus pada karakteristik bercak daun.
+* **Kendala:** Dataset awal menggunakan format *object detection* dengan anotasi YOLO, sedangkan model klasifikasi membutuhkan dataset berbentuk *ImageFolder*. Selain itu, satu gambar dapat mengandung beberapa objek penyakit sekaligus sehingga berpotensi menimbulkan noise latar belakang.
+* **Solusi:** Dilakukan proses Adaptive Cropping berbasis anotasi YOLO untuk mengekstraksi area penyakit secara otomatis dan mengubah dataset menjadi dataset klasifikasi tunggal.
 
 ### 2. Ketidakseimbangan Kelas yang Ekstrem (Extreme Class Imbalance)
 * **Kendala:** Setelah proses pemotongan (*cropping*) selesai dan visualisasi distribusi label dijalankan, ditemukan ketimpangan jumlah sampel yang sangat masif antar kelas penyakit. Kelas `BrownSpot` sangat mendominasi dengan lebih dari 1.200 sampel citra, sedangkan kelas lain seperti `LeafSmut` dan `Hispa` memiliki jumlah sampel yang sangat minim. Kondisi ini berpotensi memicu *Accuracy Paradox*, di mana model cenderung bias memprediksi kelas mayoritas namun gagal mengenali kelas minoritas.
-* **Solusi:** Untuk mencegah model mengalami *overfitting* pada kelas mayoritas, kami mengintegrasikan penanganan *imbalanced data* pada tahap pelatihan model. Strategi yang direncanakan meliputi penerapan **Class Weights** (pembobotan kelas) pada fungsi *loss* untuk memberikan penalti komputasi lebih besar saat model salah mengklasifikasikan kelas minoritas, serta opsi melakukan *Hybrid Resampling* berupa pembatasan acak (*undersampling*) pada kelas mayoritas dan ekspansi data via augmentasi kustom pada kelas minoritas.#
+* **Solusi:** Untuk mencegah model mengalami *overfitting* pada kelas mayoritas, kami mengintegrasikan penanganan *imbalanced data* pada tahap pelatihan model. Strategi yang direncanakan meliputi penerapan **Class Weights** (pembobotan kelas) pada fungsi *loss* sehingga model tetap memperhatikan kelas minoritas selama proses pelatihan berlangsung.
 
 ### 3. Data Validation yang terindikasi leakage atau hanya salinan
-* **Kendala:** Setelah melakukan training dan dilakukan validation, ternyata hasil terlalu baik untuk percobaan pertama, seperti to good to be true hasilnya, padahal data validation yang kami pakai itu data validation yang ada di dataset kaggle, bukan hasil split manual, lalu juga pada pengerjaan sudah kami cek tidak ada leakage, baik dalam preprocessing maupun cropping karena kami melakukannya satu per satu
-* **Solusi:** Kami mencoba menggunakan test eksternal untuk melihat apakah model memang sebaik itu atau tidak, nyatanya memang tidak sebaik itu, tapi test yang kami lakukan memang masih dalam sekala kecil dengan dataset hanya berjumlah 120, juga gambar yang berbeda karakteristiknya karna yang kami gunakan untuk tes adalah gambar dari lab bukan dari lapangan, maka dari itu untuk selanjutnya kami akan coba menggunakan tes set lain dengan karakteristik data yang mirip. Atau kami juga akan melakukan training model ulang menggunakan split manual dari data train saja dan tidak menggunakan data validation yang ada di dataset. Untuk hal ini kami sangat mengharapkan saran dari Bapak dosen, apakah hal yang kami lakukan sudah sesuai arahnya.
+* **Kendala:** Pada pengujian internal, kedua model memperoleh performa yang sangat tinggi sejak tahap awal pelatihan sehingga menimbulkan dugaan adanya overfitting atau data leakage, terutama karena dataset dibentuk melalui proses cropping dari gambar sumber yang sama.
+* **Solusi:** Dilakukan pengujian eksternal menggunakan dataset baru yang belum pernah digunakan sebelumnya untuk mengevaluasi kemampuan generalisasi model secara lebih realistis. Hasil pengujian eksternal menunjukkan bahwa performa model tidak setinggi hasil validasi internal sehingga memperkuat pentingnya evaluasi menggunakan data eksternal pada penelitian deep learning berbasis citra.
